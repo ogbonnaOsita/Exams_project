@@ -213,6 +213,15 @@ export const deleteSubjectExamList = AsyncHandler(
     if (noOfExamTypes.length <= 1) {
       throw new AppError("Subject must have at least one exam type", 404);
     } else {
+      const has_questions = await knex("questions")
+        .where({ subject_id })
+        .andWhere({ exam_id });
+      if (has_questions.length > 0) {
+        throw new AppError(
+          "There are questions belonging to this exam type and subject",
+          403
+        );
+      }
       if (subject_id && exam_id) {
         const status = await removeSubjectExamType(exam_id, subject_id);
         if (status) {
