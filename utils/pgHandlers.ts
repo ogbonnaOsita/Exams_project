@@ -1,4 +1,4 @@
-import knex from "../src/config/knex";
+import knex from "../knex_src/config/knex";
 
 //============Exams util functions===================
 

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { verifyToken } from "../utils/tokenHelpers";
-import knex from "../src/config/knex";
+import knex from "../knex_src/config/knex";
 
 declare global {
   namespace Express {

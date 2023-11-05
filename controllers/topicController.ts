@@ -1,5 +1,5 @@
 import AsyncHandler from "express-async-handler";
-import knex from "../src/config/knex";
+import knex from "../knex_src/config/knex";
 import { Request, Response } from "express";
 import { checkIfSubjectExists, checkIfTopicExists } from "../utils/pgHandlers";
 import { AppError } from "../middlewares/globalErrHandlers";
