@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { Knex } from "knex";
-import { Topic } from "../src/types";
+import { Topic } from "index";
 
 const SEED_COUNT = 100;
 
