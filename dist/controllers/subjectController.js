@@ -207,6 +207,12 @@ exports.deleteSubjectExamList = (0, express_async_handler_1.default)((req, res) 
         throw new globalErrHandlers_1.AppError("Subject must have at least one exam type", 404);
     }
     else {
+        const has_questions = yield (0, knex_1.default)("questions")
+            .where({ subject_id })
+            .andWhere({ exam_id });
+        if (has_questions.length > 0) {
+            throw new globalErrHandlers_1.AppError("There are questions belonging to this exam type and subject", 403);
+        }
         if (subject_id && exam_id) {
             const status = yield (0, pgHandlers_1.removeSubjectExamType)(exam_id, subject_id);
             if (status) {
