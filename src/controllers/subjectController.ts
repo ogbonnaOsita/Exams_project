@@ -140,7 +140,7 @@ export const deleteSubject = AsyncHandler(
       .where({ subject_id: id })
       .count()
       .first();
-    const questions_count = await knex("topics")
+    const questions_count = await knex("questions")
       .where({ subject_id: id })
       .count()
       .first();
