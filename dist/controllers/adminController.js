@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logoutAdmin = exports.unsuspendAdminProfile = exports.suspendAdminProfile = exports.deleteAdminProfile = exports.changeAdminPasswordProfile = exports.updateAdminProfile = exports.loginAdmin = exports.registerAdmin = exports.getAdminProfile = exports.changeAdminPassword = exports.updateAdmin = exports.getAdmin = exports.getAdmins = void 0;
+exports.logoutAdmin = exports.unsuspendAdminProfile = exports.suspendAdminProfile = exports.deleteAdminProfile = exports.changeAdminPasswordProfile = exports.updateAdminProfile = exports.loginEditor = exports.loginAdmin = exports.registerAdmin = exports.getAdminProfile = exports.changeAdminPassword = exports.updateAdmin = exports.getAdmin = exports.getAdmins = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const passwordHelpers_1 = require("../utils/passwordHelpers");
 const pgHandlers_1 = require("../utils/pgHandlers");
@@ -125,10 +125,51 @@ exports.loginAdmin = (0, express_async_handler_1.default)((req, res) => __awaite
         throw new globalErrHandlers_1.AppError("Invalid email or password", 401);
     }
     else {
-        res.status(200).json({
-            status: "success",
-            data: (0, tokenHelpers_1.generateToken)(admin.id),
-        });
+        if (admin.role !== "admin") {
+            throw new globalErrHandlers_1.AppError("You are not authorized!", 403);
+        }
+        else {
+            res.status(200).json({
+                status: "success",
+                token: (0, tokenHelpers_1.generateToken)(admin.id),
+                data: {
+                    first_name: admin.first_name,
+                    last_name: admin.last_name,
+                    email: admin.email,
+                    role: admin.role,
+                },
+            });
+        }
+    }
+}));
+exports.loginEditor = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email, password } = req.body;
+    if (!email || !password)
+        throw new globalErrHandlers_1.AppError("Please provide email and password", 404);
+    (0, pgHandlers_1.checkIfEmailIsCorrect)(email);
+    const admin = yield (0, knex_1.default)("admins").where("email", "=", email).first();
+    if (!admin)
+        throw new globalErrHandlers_1.AppError("Invalid email or password", 404);
+    const isMatched = yield (0, passwordHelpers_1.isPassMatched)(password, admin.password);
+    if (!isMatched) {
+        throw new globalErrHandlers_1.AppError("Invalid email or password", 401);
+    }
+    else {
+        if (admin.role !== "editor") {
+            throw new globalErrHandlers_1.AppError("You are not authorized!", 403);
+        }
+        else {
+            res.status(200).json({
+                status: "success",
+                token: (0, tokenHelpers_1.generateToken)(admin.id),
+                data: {
+                    first_name: admin.first_name,
+                    last_name: admin.last_name,
+                    email: admin.email,
+                    role: admin.role,
+                },
+            });
+        }
     }
 }));
 exports.updateAdminProfile = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -224,5 +265,4 @@ exports.unsuspendAdminProfile = (0, express_async_handler_1.default)((req, res) 
         data: updated_admin,
     });
 }));
-exports.logoutAdmin = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-}));
+exports.logoutAdmin = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () { }));

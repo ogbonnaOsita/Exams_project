@@ -139,7 +139,7 @@ exports.deleteSubject = (0, express_async_handler_1.default)((req, res) => __awa
         .where({ subject_id: id })
         .count()
         .first();
-    const questions_count = yield (0, knex_1.default)("topics")
+    const questions_count = yield (0, knex_1.default)("questions")
         .where({ subject_id: id })
         .count()
         .first();

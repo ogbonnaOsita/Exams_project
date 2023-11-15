@@ -8,7 +8,8 @@ const adminController_1 = require("../controllers/adminController");
 const authMiddlewares_1 = require("../middlewares/authMiddlewares");
 const adminRouter = express_1.default.Router();
 adminRouter.post("/register", adminController_1.registerAdmin);
-adminRouter.post("/login", adminController_1.loginAdmin);
+adminRouter.post("/admin/login", adminController_1.loginAdmin);
+adminRouter.post("/editor/login", adminController_1.loginEditor);
 adminRouter
     .route("/")
     .get(authMiddlewares_1.isLoggedIn, authMiddlewares_1.isAdmin, adminController_1.getAdmins)

@@ -7,6 +7,7 @@ import {
   getAdminProfile,
   getAdmins,
   loginAdmin,
+  loginEditor,
   registerAdmin,
   suspendAdminProfile,
   unsuspendAdminProfile,
@@ -22,7 +23,8 @@ import {
 const adminRouter = express.Router();
 
 adminRouter.post("/register", registerAdmin);
-adminRouter.post("/login", loginAdmin);
+adminRouter.post("/admin/login", loginAdmin);
+adminRouter.post("/editor/login", loginEditor);
 
 adminRouter
   .route("/")

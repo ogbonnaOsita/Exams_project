@@ -116,14 +116,54 @@ export const loginAdmin = AsyncHandler(async (req: Request, res: Response) => {
   checkIfEmailIsCorrect(email);
   const admin = await knex("admins").where("email", "=", email).first();
   if (!admin) throw new AppError("Invalid email or password", 404);
+
   const isMatched = await isPassMatched(password, admin.password);
   if (!isMatched) {
     throw new AppError("Invalid email or password", 401);
   } else {
-    res.status(200).json({
-      status: "success",
-      data: generateToken(admin.id),
-    });
+    if (admin.role !== "admin") {
+      throw new AppError("You are not authorized!", 403);
+    } else {
+      res.status(200).json({
+        status: "success",
+        token: generateToken(admin.id),
+        data: {
+          first_name: admin.first_name,
+          last_name: admin.last_name,
+          email: admin.email,
+          role: admin.role,
+        },
+      });
+    }
+  }
+});
+
+export const loginEditor = AsyncHandler(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    throw new AppError("Please provide email and password", 404);
+  checkIfEmailIsCorrect(email);
+  const admin = await knex("admins").where("email", "=", email).first();
+  if (!admin) throw new AppError("Invalid email or password", 404);
+
+  const isMatched = await isPassMatched(password, admin.password);
+  if (!isMatched) {
+    throw new AppError("Invalid email or password", 401);
+  } else {
+    if (admin.role !== "editor") {
+      throw new AppError("You are not authorized!", 403);
+    } else {
+      res.status(200).json({
+        status: "success",
+        token: generateToken(admin.id),
+        data: {
+          first_name: admin.first_name,
+          last_name: admin.last_name,
+          email: admin.email,
+          role: admin.role,
+        },
+      });
+    }
   }
 });
 
@@ -234,6 +274,6 @@ export const unsuspendAdminProfile = AsyncHandler(
   }
 );
 
-export const logoutAdmin = AsyncHandler(async (req: Request, res: Response) => {
-  
-})
+export const logoutAdmin = AsyncHandler(
+  async (req: Request, res: Response) => {}
+);
