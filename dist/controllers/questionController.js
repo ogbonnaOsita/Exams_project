@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getQuestionsByTopic = exports.getQuestionsBySubject = exports.getQuestionsByExam = exports.deleteQuestion = exports.updateQuestion = exports.createQuestion = exports.getQuestion = exports.getQuestions = void 0;
+exports.getQuestionsByTopic = exports.getQuestionsBySubject = exports.getQuestionsByExam = exports.deleteQuestion = exports.updateQuestion = exports.createQuestion = exports.getQuestionsPractice = exports.getQuestionsMock = exports.getQuestion = exports.getQuestions = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const knex_1 = __importDefault(require("../config/knex"));
 require("dotenv/config");
@@ -57,6 +57,63 @@ exports.getQuestion = (0, express_async_handler_1.default)((req, res) => __await
     res.status(200).json({
         status: "success",
         data: question,
+    });
+}));
+exports.getQuestionsMock = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { exam, subjects, numberOfQuestions } = req.query;
+    if (!exam || !subjects || !numberOfQuestions)
+        throw new globalErrHandlers_1.AppError("Please provide the required parameters", 404);
+    const selectedSubjects = subjects.split(",");
+    const questionsBySubject = [];
+    yield Promise.all(selectedSubjects.map((subject) => __awaiter(void 0, void 0, void 0, function* () {
+        const questions = yield knex_1.default
+            .select("q.id", "q.question", "q.options", "q.correctAnswer", "q.year", "q.image_url", "q.cloudinary_id", "q.created_at", "q.updated_at", "et.title as exam", "s.title as subject", "t.title as topic")
+            .from("questions as q")
+            .leftJoin("examTypes as et", "q.exam_id", "et.id")
+            .leftJoin("subjects as s", "q.subject_id", "s.id")
+            .leftJoin("topics as t", "q.topic_id", "t.id")
+            .where("et.title", exam)
+            .andWhere("s.title", subject)
+            .orderByRaw("random()")
+            .limit(Number(numberOfQuestions));
+        if (questions)
+            questionsBySubject.push({
+                subjectTitle: subject,
+                mockQuestions: questions,
+            });
+    })));
+    if (questionsBySubject.length < 1)
+        throw new globalErrHandlers_1.AppError("No question found", 404);
+    res.status(200).json({
+        status: "success",
+        data: questionsBySubject,
+    });
+}));
+exports.getQuestionsPractice = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { exam, subject, topic, numberOfQuestions } = req.query;
+    if (!exam && topic && !numberOfQuestions)
+        throw new globalErrHandlers_1.AppError("Please provide the required parameters", 404);
+    if (!subject)
+        throw new globalErrHandlers_1.AppError("You must select one subject to take this test", 404);
+    let query = knex_1.default
+        .select("q.id", "q.question", "q.options", "q.correctAnswer", "q.year", "q.image_url", "q.cloudinary_id", "q.created_at", "q.updated_at", "et.title as exam", "s.title as subject", "t.title as topic")
+        .from("questions as q")
+        .leftJoin("examTypes as et", "q.exam_id", "et.id")
+        .leftJoin("subjects as s", "q.subject_id", "s.id")
+        .leftJoin("topics as t", "q.topic_id", "t.id");
+    query = exam ? query.where("et.title", exam) : query;
+    query = subject ? query.where("s.title", subject) : query;
+    query = topic ? query.where("t.title", topic) : query;
+    query.orderByRaw("random()");
+    query = numberOfQuestions
+        ? query.limit(Number(numberOfQuestions))
+        : query.limit(10);
+    const questions = yield query;
+    if (!questions)
+        throw new globalErrHandlers_1.AppError("No question found", 404);
+    res.status(200).json({
+        status: "success",
+        data: questions,
     });
 }));
 exports.createQuestion = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

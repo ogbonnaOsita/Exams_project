@@ -11,6 +11,26 @@ import {
 import cloudinary from "../utils/cloudinary";
 import { AppError } from "../middlewares/globalErrHandlers";
 
+type Question = {
+  id: number;
+  question: string;
+  options: object;
+  correctAnswer: string;
+  year: number;
+  image_url: string;
+  cloudinary_id: string;
+  topic_id: number;
+  exam_id: number;
+  subject_id: number;
+  created_at: Date;
+  updated_at: Date;
+};
+
+type MockQuestions = {
+  subjectTitle: string;
+  mockQuestions: Question[];
+};
+
 export const getQuestions = AsyncHandler(
   async (req: Request, res: Response) => {
     const searchTerm = req.query.search || "";
@@ -78,6 +98,103 @@ export const getQuestion = AsyncHandler(async (req: Request, res: Response) => {
     data: question,
   });
 });
+
+export const getQuestionsMock = AsyncHandler(
+  async (req: Request, res: Response) => {
+    const { exam, subjects, numberOfQuestions } = req.query;
+    if (!exam || !subjects || !numberOfQuestions)
+      throw new AppError("Please provide the required parameters", 404);
+
+    const selectedSubjects = (subjects as string).split(",");
+    const questionsBySubject: MockQuestions[] = [];
+    await Promise.all(
+      selectedSubjects.map(async (subject) => {
+        const questions = await knex
+          .select(
+            "q.id",
+            "q.question",
+            "q.options",
+            "q.correctAnswer",
+            "q.year",
+            "q.image_url",
+            "q.cloudinary_id",
+            "q.created_at",
+            "q.updated_at",
+            "et.title as exam",
+            "s.title as subject",
+            "t.title as topic"
+          )
+          .from("questions as q")
+          .leftJoin("examTypes as et", "q.exam_id", "et.id")
+          .leftJoin("subjects as s", "q.subject_id", "s.id")
+          .leftJoin("topics as t", "q.topic_id", "t.id")
+          .where("et.title", exam)
+          .andWhere("s.title", subject)
+          .orderByRaw("random()")
+          .limit(Number(numberOfQuestions));
+
+        if (questions)
+          questionsBySubject.push({
+            subjectTitle: subject,
+            mockQuestions: questions,
+          });
+      })
+    );
+
+    if (questionsBySubject.length < 1)
+      throw new AppError("No question found", 404);
+    res.status(200).json({
+      status: "success",
+      data: questionsBySubject,
+    });
+  }
+);
+
+export const getQuestionsPractice = AsyncHandler(
+  async (req: Request, res: Response) => {
+    const { exam, subject, topic, numberOfQuestions } = req.query;
+    if (!exam && topic && !numberOfQuestions)
+      throw new AppError("Please provide the required parameters", 404);
+    if (!subject)
+      throw new AppError("You must select one subject to take this test", 404);
+    let query = knex
+      .select(
+        "q.id",
+        "q.question",
+        "q.options",
+        "q.correctAnswer",
+        "q.year",
+        "q.image_url",
+        "q.cloudinary_id",
+        "q.created_at",
+        "q.updated_at",
+        "et.title as exam",
+        "s.title as subject",
+        "t.title as topic"
+      )
+      .from("questions as q")
+      .leftJoin("examTypes as et", "q.exam_id", "et.id")
+      .leftJoin("subjects as s", "q.subject_id", "s.id")
+      .leftJoin("topics as t", "q.topic_id", "t.id");
+
+    query = exam ? query.where("et.title", exam) : query;
+    query = subject ? query.where("s.title", subject) : query;
+    query = topic ? query.where("t.title", topic) : query;
+
+    query.orderByRaw("random()");
+    query = numberOfQuestions
+      ? query.limit(Number(numberOfQuestions))
+      : query.limit(10);
+
+    const questions = await query;
+
+    if (!questions) throw new AppError("No question found", 404);
+    res.status(200).json({
+      status: "success",
+      data: questions,
+    });
+  }
+);
 
 export const createQuestion = AsyncHandler(
   async (req: Request, res: Response) => {

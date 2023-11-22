@@ -7,6 +7,8 @@ import {
   getQuestionsByExam,
   getQuestionsBySubject,
   getQuestionsByTopic,
+  getQuestionsMock,
+  getQuestionsPractice,
   updateQuestion,
 } from "../controllers/questionController";
 import upload from "../utils/multer";
@@ -22,6 +24,8 @@ questionRouter.post(
   upload.single("image"),
   createQuestion
 );
+questionRouter.get("/mock", getQuestionsMock);
+questionRouter.get("/practice", getQuestionsPractice);
 questionRouter.get("/:id", getQuestion);
 questionRouter.patch(
   "/:id",

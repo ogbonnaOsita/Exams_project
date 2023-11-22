@@ -10,6 +10,8 @@ const authMiddlewares_1 = require("../middlewares/authMiddlewares");
 const questionRouter = express_1.default.Router();
 questionRouter.get("/", questionController_1.getQuestions);
 questionRouter.post("/", authMiddlewares_1.isLoggedIn, authMiddlewares_1.isAdminOrEditor, multer_1.default.single("image"), questionController_1.createQuestion);
+questionRouter.get("/mock", questionController_1.getQuestionsMock);
+questionRouter.get("/practice", questionController_1.getQuestionsPractice);
 questionRouter.get("/:id", questionController_1.getQuestion);
 questionRouter.patch("/:id", authMiddlewares_1.isLoggedIn, authMiddlewares_1.isAdminOrEditor, multer_1.default.single("image"), questionController_1.updateQuestion);
 questionRouter.delete("/:id", authMiddlewares_1.isLoggedIn, authMiddlewares_1.isAdminOrEditor, questionController_1.deleteQuestion);
