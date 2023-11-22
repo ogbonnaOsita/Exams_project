@@ -188,7 +188,7 @@ export const getQuestionsPractice = AsyncHandler(
 
     const questions = await query;
 
-    if (!questions) throw new AppError("No question found", 404);
+    if (questions.length < 1) throw new AppError("No question found", 404);
     res.status(200).json({
       status: "success",
       data: questions,

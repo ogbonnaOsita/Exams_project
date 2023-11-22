@@ -109,7 +109,7 @@ exports.getQuestionsPractice = (0, express_async_handler_1.default)((req, res) =
         ? query.limit(Number(numberOfQuestions))
         : query.limit(10);
     const questions = yield query;
-    if (!questions)
+    if (questions.length < 1)
         throw new globalErrHandlers_1.AppError("No question found", 404);
     res.status(200).json({
         status: "success",
